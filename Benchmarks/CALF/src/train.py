@@ -10,6 +10,12 @@ from preprocessing import batch2long, timestamps2long
 from json_io import predictions2json
 from SoccerNet.Downloader import getListGames
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def _to_device(tensor: torch.Tensor) -> torch.Tensor:
+    return tensor.to(DEVICE)
+
 def trainer(train_loader,
             val_loader,
             val_metric_loader,
@@ -140,9 +146,9 @@ def train(dataloader,
             data_time.update(time.time() - end)
 
     
-            feats = feats.cuda()
-            labels = labels.cuda().float()
-            targets = targets.cuda().float()
+            feats = _to_device(feats)
+            labels = _to_device(labels).float()
+            targets = _to_device(targets).float()
 
 
             feats=feats.unsqueeze(1)
@@ -206,9 +212,9 @@ def test(dataloader,model, model_name, save_predictions=False):
         for i, (feat_half1, feat_half2, label_half1, label_half2) in t:
             data_time.update(time.time() - end)
 
-            feat_half1 = feat_half1.cuda().squeeze(0)
+            feat_half1 = _to_device(feat_half1).squeeze(0)
             label_half1 = label_half1.float().squeeze(0)
-            feat_half2 = feat_half2.cuda().squeeze(0)
+            feat_half2 = _to_device(feat_half2).squeeze(0)
             label_half2 = label_half2.float().squeeze(0)
 
 

@@ -8,6 +8,12 @@ import math
 from preprocessing import batch2long, timestamps2long, visualize, NMS
 from json_io import predictions2json
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def _to_device(tensor: torch.Tensor) -> torch.Tensor:
+    return tensor.to(DEVICE)
+
 def test(dataloader,model, model_name, save_predictions=False):
 
     spotting_predictions = list()
@@ -22,7 +28,7 @@ def test(dataloader,model, model_name, save_predictions=False):
     with tqdm(enumerate(dataloader), total=len(dataloader), ncols=120) as t:
         for i, (feat_half1, size) in t:
 
-            feat_half1 = feat_half1.cuda().squeeze(0)
+            feat_half1 = _to_device(feat_half1).squeeze(0)
 
 
             feat_half1=feat_half1.unsqueeze(1)

@@ -12,6 +12,9 @@ from model import ContextAwareModel
 from train import trainer, test
 from loss import ContextAwareLoss, SpottingLoss
 
+# Use CUDA when available, fall back to CPU.
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # Fixing seeds for reproducibility
 torch.manual_seed(0)
 np.random.seed(0)
@@ -36,7 +39,16 @@ def main(args):
 
 
     # Create the deep learning model
-    model = ContextAwareModel(weights=args.load_weights, input_size=args.num_features, num_classes=dataset_Test.num_classes, chunk_size=args.chunk_size*args.framerate, dim_capsule=args.dim_capsule, receptive_field=args.receptive_field*args.framerate, num_detections=dataset_Test.num_detections, framerate=args.framerate).cuda()
+    model = ContextAwareModel(
+        weights=args.load_weights,
+        input_size=args.num_features,
+        num_classes=dataset_Test.num_classes,
+        chunk_size=args.chunk_size*args.framerate,
+        dim_capsule=args.dim_capsule,
+        receptive_field=args.receptive_field*args.framerate,
+        num_detections=dataset_Test.num_detections,
+        framerate=args.framerate,
+    ).to(DEVICE)
     # Logging information about the model
     logging.info(model)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)

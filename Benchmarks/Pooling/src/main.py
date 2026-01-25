@@ -12,6 +12,9 @@ from model import Model
 from train import trainer, test, testSpotting
 from loss import NLLLoss
 
+# Use CUDA when available, fall back to CPU.
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # for reproducibility
 torch.manual_seed(0)
 np.random.seed(0)
@@ -36,9 +39,14 @@ def main(args):
     dataset_Test  = SoccerNetClipsTesting(path=args.SoccerNet_path, features=args.features, split=args.split_test, version=args.version, framerate=args.framerate, chunk_size=args.chunk_size*args.framerate)
 
     # create model
-    model = Model(weights=args.load_weights, input_size=args.num_features,
-                  num_classes=dataset_Test.num_classes, chunk_size=args.chunk_size*args.framerate,
-                  framerate=args.framerate, pool=args.pool).cuda()
+    model = Model(
+        weights=args.load_weights,
+        input_size=args.num_features,
+        num_classes=dataset_Test.num_classes,
+        chunk_size=args.chunk_size*args.framerate,
+        framerate=args.framerate,
+        pool=args.pool,
+    ).to(DEVICE)
     logging.info(model)
     total_params = sum(p.numel()
                        for p in model.parameters() if p.requires_grad)

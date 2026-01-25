@@ -15,6 +15,12 @@ from SoccerNet.Evaluation.ActionSpotting import evaluate
 from SoccerNet.Evaluation.utils import AverageMeter, EVENT_DICTIONARY_V2, INVERSE_EVENT_DICTIONARY_V2
 from SoccerNet.Evaluation.utils import EVENT_DICTIONARY_V1, INVERSE_EVENT_DICTIONARY_V1
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def _to_device(tensor: torch.Tensor) -> torch.Tensor:
+    return tensor.to(DEVICE)
+
 
 
 
@@ -108,8 +114,8 @@ def train(dataloader,
         for i, (feats, labels) in t:
             # measure data loading time
             data_time.update(time.time() - end)
-            feats = feats.cuda()
-            labels = labels.cuda()
+            feats = _to_device(feats)
+            labels = _to_device(labels)
             # compute output
             output = model(feats)
 
@@ -156,7 +162,7 @@ def test(dataloader, model, model_name):
         for i, (feats, labels) in t:
             # measure data loading time
             data_time.update(time.time() - end)
-            feats = feats.cuda()
+            feats = _to_device(feats)
             # labels = labels.cuda()
 
             # print(feats.shape)
@@ -232,7 +238,7 @@ def testSpotting(dataloader, model, model_name, overwrite=True, NMS_window=30, N
                     start_frame = BS*b
                     end_frame = BS*(b+1) if BS * \
                         (b+1) < len(feat_half1) else len(feat_half1)
-                    feat = feat_half1[start_frame:end_frame].cuda()
+                    feat = _to_device(feat_half1[start_frame:end_frame])
                     output = model(feat).cpu().detach().numpy()
                     timestamp_long_half_1.append(output)
                 timestamp_long_half_1 = np.concatenate(timestamp_long_half_1)
@@ -242,7 +248,7 @@ def testSpotting(dataloader, model, model_name, overwrite=True, NMS_window=30, N
                     start_frame = BS*b
                     end_frame = BS*(b+1) if BS * \
                         (b+1) < len(feat_half2) else len(feat_half2)
-                    feat = feat_half2[start_frame:end_frame].cuda()
+                    feat = _to_device(feat_half2[start_frame:end_frame])
                     output = model(feat).cpu().detach().numpy()
                     timestamp_long_half_2.append(output)
                 timestamp_long_half_2 = np.concatenate(timestamp_long_half_2)

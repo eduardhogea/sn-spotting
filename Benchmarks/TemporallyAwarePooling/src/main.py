@@ -12,6 +12,8 @@ from model import Model
 from train import trainer, test, testSpotting
 from loss import NLLLoss
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 def main(args):
 
@@ -30,10 +32,15 @@ def main(args):
         args.feature_dim = dataset_Test[0][1].shape[-1]
         print("feature_dim found:", args.feature_dim)
     # create model
-    model = Model(weights=args.load_weights, input_size=args.feature_dim,
-                  num_classes=dataset_Test.num_classes, window_size=args.window_size, 
-                  vocab_size = args.vocab_size,
-                  framerate=args.framerate, pool=args.pool).cuda()
+    model = Model(
+        weights=args.load_weights,
+        input_size=args.feature_dim,
+        num_classes=dataset_Test.num_classes,
+        window_size=args.window_size,
+        vocab_size=args.vocab_size,
+        framerate=args.framerate,
+        pool=args.pool,
+    ).to(DEVICE)
     logging.info(model)
     total_params = sum(p.numel()
                        for p in model.parameters() if p.requires_grad)
