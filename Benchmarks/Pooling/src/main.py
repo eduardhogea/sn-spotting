@@ -85,7 +85,10 @@ def main(args):
                 max_epochs=args.max_epochs, evaluation_frequency=args.evaluation_frequency)
 
     # For the best model only
-    checkpoint = torch.load(os.path.join("models", args.model_name, "model.pth.tar"))
+    checkpoint = torch.load(
+        os.path.join("models", args.model_name, "model.pth.tar"),
+        map_location=DEVICE,
+    )
     model.load_state_dict(checkpoint['state_dict'])
 
     # test on multiple splits [test/challenge]

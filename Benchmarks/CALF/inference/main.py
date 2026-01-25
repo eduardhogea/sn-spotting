@@ -52,7 +52,10 @@ def main(args):
 
     
     # Load the best model and compute its performance
-    checkpoint = torch.load(os.path.join("models", args.model_name, "model.pth.tar"))
+    checkpoint = torch.load(
+        os.path.join("models", args.model_name, "model.pth.tar"),
+        map_location=DEVICE,
+    )
     model.load_state_dict(checkpoint['state_dict'])
 
     test(test_loader, model=model, model_name=args.model_name, save_predictions=True)
