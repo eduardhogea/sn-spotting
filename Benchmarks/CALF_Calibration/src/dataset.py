@@ -88,6 +88,14 @@ class SoccerNetClips(Dataset):
         logging.info("Checking/Download features and labels locally")
         downloader = SoccerNetDownloader(path)
         downloader.downloadGames(files=[self.labels, f"1_{self.features}", f"2_{self.features}"], split=[split], verbose=False)
+        if self.args.backbone_player is not None or self.args.calibration or self.args.with_resnet > 0:
+            extra_files = [
+                f"1_{self.bbox_predictions}",
+                f"2_{self.bbox_predictions}",
+                f"1_{self.calibration_predictions}",
+                f"2_{self.calibration_predictions}",
+            ]
+            downloader.downloadGames(files=extra_files, split=[split], verbose=False)
 
         # Load the ResNet Model if required
         if self.args.with_resnet == 18:
@@ -620,38 +628,36 @@ class SoccerNetClipsTesting(Dataset):
         feat_half1 = np.load(os.path.join(self.path, self.listGames[index], "1_" + self.features))
         feat_half2 = np.load(os.path.join(self.path, self.listGames[index], "2_" + self.features))
 
-        # Representation of the bounding boxes
-        bbox_path_half1 = os.path.join(self.path, self.listGames[index], "1_" + self.bbox_predictions)
-        bbox_path_half2 = os.path.join(self.path, self.listGames[index], "2_" + self.bbox_predictions)
-        calib_path_half1 = os.path.join(self.path, self.listGames[index], "1_" + self.calibration_predictions)
-        calib_path_half2 = os.path.join(self.path, self.listGames[index], "2_" + self.calibration_predictions)
+        bbox_half1 = None
+        bbox_half2 = None
+        calibration_half1 = None
+        calibration_half2 = None
+        if self.args.backbone_player is not None or self.args.calibration or self.args.with_resnet > 0:
+            # Representation of the bounding boxes
+            bbox_path_half1 = os.path.join(self.path, self.listGames[index], "1_" + self.bbox_predictions)
+            bbox_path_half2 = os.path.join(self.path, self.listGames[index], "2_" + self.bbox_predictions)
+            calib_path_half1 = os.path.join(self.path, self.listGames[index], "1_" + self.calibration_predictions)
+            calib_path_half2 = os.path.join(self.path, self.listGames[index], "2_" + self.calibration_predictions)
 
-        use_dummy_representation = False
-        if os.path.exists(bbox_path_half1) and os.path.exists(bbox_path_half2):
+            if not os.path.exists(bbox_path_half1) or not os.path.exists(bbox_path_half2):
+                raise FileNotFoundError(
+                    f"Missing player bbox files. Expected {bbox_path_half1} and {bbox_path_half2}."
+                )
             with open(bbox_path_half1, "r") as file_half1:
                 bbox_half1 = json.load(file_half1)
             with open(bbox_path_half2, "r") as file_half2:
                 bbox_half2 = json.load(file_half2)
-        else:
-            use_dummy_representation = True
-            bbox_half1 = {"size": [self.representation_height, self.representation_height, self.representation_width], "predictions": []}
-            bbox_half2 = {"size": [self.representation_height, self.representation_height, self.representation_width], "predictions": []}
 
-        # Saving the calibration
-        if self.args.calibration:
-            if os.path.exists(calib_path_half1) and os.path.exists(calib_path_half2):
+            # Saving the calibration
+            if self.args.calibration:
+                if not os.path.exists(calib_path_half1) or not os.path.exists(calib_path_half2):
+                    raise FileNotFoundError(
+                        f"Missing calibration files. Expected {calib_path_half1} and {calib_path_half2}."
+                    )
                 with open(calib_path_half1, "r") as file_c_half1:
                     calibration_half1 = json.load(file_c_half1)
                 with open(calib_path_half2, "r") as file_c_half2:
                     calibration_half2 = json.load(file_c_half2)
-            else:
-                use_dummy_representation = True
-                calibration_half1 = {"size": [self.representation_height, self.representation_height, self.representation_width], "predictions": []}
-                calibration_half2 = {"size": [self.representation_height, self.representation_height, self.representation_width], "predictions": []}
-
-        if use_dummy_representation and not hasattr(self, "_missing_rep_warned"):
-            logging.warning("Missing player bbox/calibration files; using blank representations.")
-            self._missing_rep_warned = True
 
         clip_representation_half1 = None
         clip_representation_half2 = None
