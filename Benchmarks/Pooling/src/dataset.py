@@ -129,9 +129,12 @@ class SoccerNetClips(Dataset):
                 frame = framerate * ( seconds + 60 * minutes ) 
 
                 if version == 1:
-                    if "card" in event: label = 0
-                    elif "subs" in event: label = 1
-                    elif "soccer" in event: label = 2
+                    if "card" in event:
+                        label = 0
+                    elif "subs" in event or "substitution" in event:
+                        label = 1
+                    elif "soccer" in event:
+                        label = 2
                     else: continue
                 elif version == 2:
                     if event not in self.dict_event:
@@ -241,9 +244,12 @@ class SoccerNetClipsTesting(Dataset):
                 frame = self.framerate * ( seconds + 60 * minutes ) 
 
                 if self.version == 1:
-                    if "card" in event: label = 0
-                    elif "subs" in event: label = 1
-                    elif "soccer" in event: label = 2
+                    if "card" in event:
+                        label = 0
+                    elif "subs" in event or "substitution" in event:
+                        label = 1
+                    elif "soccer" in event:
+                        label = 2
                     else: continue
                 elif self.version == 2:
                     if event not in self.dict_event:
