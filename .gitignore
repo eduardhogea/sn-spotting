@@ -2,5 +2,6 @@ __pycache__/
 Benchmarks/**/models/**/outputs_*/
 Benchmarks/**/models/**/results_spotting_*.zip
 Benchmarks/**/models/**/*.log
+Benchmarks/**/outputs/
 Benchmarks/**/data/
 Benchmarks/**/src/__pycache__/
