@@ -350,10 +350,12 @@ def testSpotting(dataloader, model, model_name, overwrite=True, NMS_window=30, N
         print("Visit eval.ai to evalaute performances on Challenge set")
         return None
         
-    results =  evaluate(SoccerNet_path=dataloader.dataset.path, 
-                 Predictions_path=output_results,
-                 split="test",
-                 prediction_file="results_spotting.json", 
+    predictions_path = os.path.join("models", model_name, output_folder)
+    results =  evaluate(SoccerNet_path=dataloader.dataset.path,
+                 # Use folder path to avoid Windows zip path mismatch in evaluation.
+                 Predictions_path=predictions_path,
+                 split=split,
+                 prediction_file="results_spotting.json",
                  version=dataloader.dataset.version)
 
     return results

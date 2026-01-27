@@ -29,7 +29,7 @@ def main(args):
         dataset_Valid = SoccerNetClips(path=args.SoccerNet_path, split="valid", args=args)
         dataset_Valid_metric  = SoccerNetClipsTesting(path=args.SoccerNet_path, split="valid", args=args)
     
-    split_to_test = "test"
+    split_to_test = args.split_test
     if args.challenge:
         split_to_test="challenge"
     dataset_Test  = SoccerNetClipsTesting(path=args.SoccerNet_path, split=split_to_test, args=args)
@@ -114,6 +114,7 @@ if __name__ == '__main__':
     parser.add_argument('--mode',   required=False, type=int,   default=0,     help='Which network to use 0: ResNET, 1: Subjective, 2: ResNET + Subjective' )
     parser.add_argument('--test_only',   required=False, action='store_true',  help='Perform testing only' )
     parser.add_argument('--challenge',   required=False, action='store_true',  help='Perform evaluations on the challenge set to produce json files' )
+    parser.add_argument('--split_test',  required=False, type=str, default="test", help='Split to evaluate: test/valid/challenge')
     parser.add_argument('--teacher',   required=False, action='store_true',  help='Use the etacher calibration files' )
     parser.add_argument('--tiny', required=False, type=int,   default=None,    help='Consider smaller amount of games' )
     parser.add_argument('--class_split', required=False, type=str,   default=None,    help='choose a split: visual, nonvisual' )
