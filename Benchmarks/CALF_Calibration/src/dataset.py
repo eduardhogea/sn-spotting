@@ -21,8 +21,12 @@ from config.classes import EVENT_DICTIONARY_V2, K_V2, EVENT_DICTIONARY_V2_VISUAL
 
 from preprocessing import oneHotToShifts, getTimestampTargets, getChunks_anchors, unproject_image_point, meter2radar
 
-from torch_geometric.data import Data
-from torch_geometric.data import Batch
+try:
+    from torch_geometric.data import Data
+    from torch_geometric.data import Batch
+except ImportError:
+    Data = None
+    Batch = None
 import copy
 import cv2
 
@@ -617,20 +621,37 @@ class SoccerNetClipsTesting(Dataset):
         feat_half2 = np.load(os.path.join(self.path, self.listGames[index], "2_" + self.features))
 
         # Representation of the bounding boxes
-        file_half1 = open(os.path.join(self.path, self.listGames[index], "1_" + self.bbox_predictions))
-        bbox_half1 = json.load(file_half1)
-        file_half1.close()
-        file_half2 = open(os.path.join(self.path, self.listGames[index], "2_" + self.bbox_predictions))
-        bbox_half2 = json.load(file_half2)
-        file_half2.close()
+        bbox_path_half1 = os.path.join(self.path, self.listGames[index], "1_" + self.bbox_predictions)
+        bbox_path_half2 = os.path.join(self.path, self.listGames[index], "2_" + self.bbox_predictions)
+        calib_path_half1 = os.path.join(self.path, self.listGames[index], "1_" + self.calibration_predictions)
+        calib_path_half2 = os.path.join(self.path, self.listGames[index], "2_" + self.calibration_predictions)
+
+        use_dummy_representation = False
+        if os.path.exists(bbox_path_half1) and os.path.exists(bbox_path_half2):
+            with open(bbox_path_half1, "r") as file_half1:
+                bbox_half1 = json.load(file_half1)
+            with open(bbox_path_half2, "r") as file_half2:
+                bbox_half2 = json.load(file_half2)
+        else:
+            use_dummy_representation = True
+            bbox_half1 = {"size": [self.representation_height, self.representation_height, self.representation_width], "predictions": []}
+            bbox_half2 = {"size": [self.representation_height, self.representation_height, self.representation_width], "predictions": []}
 
         # Saving the calibration
-        file_c_half1 = open(os.path.join(self.path, self.listGames[index], "1_" + self.calibration_predictions))
-        calibration_half1 = json.load(file_c_half1)
-        file_c_half1.close()
-        file_c_half2 = open(os.path.join(self.path, self.listGames[index], "2_" + self.calibration_predictions))
-        calibration_half2 = json.load(file_c_half2)
-        file_c_half2.close()
+        if self.args.calibration:
+            if os.path.exists(calib_path_half1) and os.path.exists(calib_path_half2):
+                with open(calib_path_half1, "r") as file_c_half1:
+                    calibration_half1 = json.load(file_c_half1)
+                with open(calib_path_half2, "r") as file_c_half2:
+                    calibration_half2 = json.load(file_c_half2)
+            else:
+                use_dummy_representation = True
+                calibration_half1 = {"size": [self.representation_height, self.representation_height, self.representation_width], "predictions": []}
+                calibration_half2 = {"size": [self.representation_height, self.representation_height, self.representation_width], "predictions": []}
+
+        if use_dummy_representation and not hasattr(self, "_missing_rep_warned"):
+            logging.warning("Missing player bbox/calibration files; using blank representations.")
+            self._missing_rep_warned = True
 
         clip_representation_half1 = None
         clip_representation_half2 = None

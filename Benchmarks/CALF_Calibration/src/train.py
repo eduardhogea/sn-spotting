@@ -210,6 +210,7 @@ def test(dataloader,model, model_name, save_predictions=False):
     receptive_field = model.receptive_field
 
     model.eval()
+    device = next(model.parameters()).device
 
     end = time.time()
     with tqdm(enumerate(dataloader), total=len(dataloader), ncols=120) as t:
@@ -217,21 +218,21 @@ def test(dataloader,model, model_name, save_predictions=False):
             data_time.update(time.time() - end)
 
             
-            feat_half1 = feat_half1.cuda().squeeze(0)
-            feat_half2 = feat_half2.cuda().squeeze(0)
+            feat_half1 = feat_half1.to(device).squeeze(0)
+            feat_half2 = feat_half2.to(device).squeeze(0)
 
             feat_half1 = feat_half1.unsqueeze(1)
             feat_half2 = feat_half2.unsqueeze(1)
 
             if dataloader.dataset.args.backbone_player == "3DConv":
                 if dataloader.dataset.args.with_resnet > 0:
-                    representation_half1 = representation_half1.cuda().squeeze(0).float()
-                    representation_half2 = representation_half2.cuda().squeeze(0).float()
+                    representation_half1 = representation_half1.to(device).squeeze(0).float()
+                    representation_half2 = representation_half2.to(device).squeeze(0).float()
                     representation_half1 = representation_half1.unsqueeze(1)
                     representation_half2 = representation_half2.unsqueeze(1)
                 else:
-                    representation_half1 = representation_half1.cuda().squeeze(0).float()
-                    representation_half2 = representation_half2.cuda().squeeze(0).float()
+                    representation_half1 = representation_half1.to(device).squeeze(0).float()
+                    representation_half2 = representation_half2.to(device).squeeze(0).float()
                     representation_half1 = representation_half1.permute(0,4,1,2,3).contiguous()
                     representation_half2 = representation_half2.permute(0,4,1,2,3).contiguous()
             

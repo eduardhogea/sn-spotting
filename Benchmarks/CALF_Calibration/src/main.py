@@ -36,7 +36,8 @@ def main(args):
 
 
     # Create the deep learning model
-    model = ContextAwareModel(num_classes=dataset_Test.num_classes, args=args).cuda()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = ContextAwareModel(num_classes=dataset_Test.num_classes, args=args).to(device)
 
 
     # Logging information about the model
@@ -81,8 +82,12 @@ def main(args):
                 max_epochs=args.max_epochs, evaluation_frequency=args.evaluation_frequency)
 
     # Load the best model and compute its performance
-    checkpoint = torch.load(os.path.join("models", args.model_name, "model.pth.tar"))
-    model.load_state_dict(checkpoint['state_dict'])
+    if args.load_weights is None:
+        checkpoint = torch.load(
+            os.path.join("models", args.model_name, "model.pth.tar"),
+            map_location=device
+        )
+        model.load_state_dict(checkpoint['state_dict'])
 
     a_mAP, a_mAP_per_class, a_mAP_visible, a_mAP_per_class_visible, a_mAP_unshown, a_mAP_per_class_unshown = test(test_loader, model=model, model_name=args.model_name, save_predictions=True)
     logging.info("Best performance at end of training ")

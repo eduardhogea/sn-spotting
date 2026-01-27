@@ -88,12 +88,13 @@ def main(args):
                 model_name=args.model_name,
                 max_epochs=args.max_epochs, evaluation_frequency=args.evaluation_frequency)
 
-    # Load the best model and compute its performance
-    checkpoint = torch.load(
-        os.path.join("models", args.model_name, "model.pth.tar"),
-        map_location=DEVICE,
-    )
-    model.load_state_dict(checkpoint['state_dict'])
+    # Load the best model and compute its performance (skip if pretrained weights already loaded)
+    if args.load_weights is None:
+        checkpoint = torch.load(
+            os.path.join("models", args.model_name, "model.pth.tar"),
+            map_location=DEVICE,
+        )
+        model.load_state_dict(checkpoint['state_dict'])
 
     a_mAP, a_mAP_per_class, a_mAP_visible, a_mAP_per_class_visible, a_mAP_unshown, a_mAP_per_class_unshown = test(test_loader, model=model, model_name=args.model_name, save_predictions=True)
     logging.info("Best performance at end of training ")

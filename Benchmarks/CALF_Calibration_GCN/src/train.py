@@ -207,6 +207,7 @@ def test(dataloader,model, model_name, save_predictions=False):
     receptive_field = model.receptive_field
 
     model.eval()
+    device = next(model.parameters()).device
 
     end = time.time()
     with tqdm(enumerate(dataloader), total=len(dataloader), ncols=120) as t:
@@ -215,12 +216,12 @@ def test(dataloader,model, model_name, save_predictions=False):
 
             for i, (feat, label, representation) in enumerate(zip([feat_half1, feat_half2], [label_half1, label_half2], [representation_half1, representation_half2])):
 
-                feat = feat.cuda().squeeze(0)
+                feat = feat.to(device).squeeze(0)
 
                 feat=feat.unsqueeze(1)
 
                 if dataloader.dataset.args.backbone_player == "3DConv":
-                    representation = representation.cuda().squeeze(0).float()
+                    representation = representation.to(device).squeeze(0).float()
                     representation = representation.permute(0,4,1,2,3).contiguous()
 
                 elif "GCN" in dataloader.dataset.args.backbone_player:

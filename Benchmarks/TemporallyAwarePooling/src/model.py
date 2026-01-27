@@ -89,7 +89,17 @@ class Model(nn.Module):
             print("=> loading checkpoint '{}'".format(weights))
             map_location = torch.device("cpu") if not torch.cuda.is_available() else None
             checkpoint = torch.load(weights, map_location=map_location)
-            self.load_state_dict(checkpoint['state_dict'])
+            state_dict = checkpoint.get('state_dict', checkpoint)
+            model_dict = self.state_dict()
+            filtered = {k: v for k, v in state_dict.items()
+                        if k in model_dict and v.shape == model_dict[k].shape}
+            missing = [k for k in model_dict.keys() if k not in filtered]
+            skipped = [k for k in state_dict.keys() if k not in filtered]
+            self.load_state_dict(filtered, strict=False)
+            if skipped:
+                print("=> skipped {} incompatible keys".format(len(skipped)))
+            if missing:
+                print("=> missing {} keys".format(len(missing)))
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(weights, checkpoint['epoch']))
 

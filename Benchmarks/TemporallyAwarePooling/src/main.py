@@ -78,12 +78,13 @@ def main(args):
                 model_name=args.model_name,
                 max_epochs=args.max_epochs, evaluation_frequency=args.evaluation_frequency)
 
-    # For the best model only
-    checkpoint = torch.load(
-        os.path.join("models", args.model_name, "model.pth.tar"),
-        map_location=DEVICE,
-    )
-    model.load_state_dict(checkpoint['state_dict'])
+    # For the best model only (skip if pretrained weights already loaded)
+    if args.load_weights is None:
+        checkpoint = torch.load(
+            os.path.join("models", args.model_name, "model.pth.tar"),
+            map_location=DEVICE,
+        )
+        model.load_state_dict(checkpoint['state_dict'])
 
     # test on multiple splits [test/challenge]
     for split in args.split_test:
