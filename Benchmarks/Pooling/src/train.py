@@ -363,12 +363,14 @@ def testSpotting(dataloader, model, model_name, overwrite=True, NMS_window=30, N
         return None
 
     predictions_path = os.path.join("models", model_name, output_folder)
+    label_files = "Labels.json" if dataloader.dataset.version == 1 else "Labels-v2.json"
     results = evaluate(SoccerNet_path=dataloader.dataset.path,
                  # Use folder path to avoid Windows zip path mismatch in evaluation.
                  Predictions_path=predictions_path,
                  split=split,
                  prediction_file="results_spotting.json",
-                 version=dataloader.dataset.version)
+                 version=dataloader.dataset.version,
+                 label_files=label_files)
 
     
     return results
