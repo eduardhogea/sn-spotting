@@ -266,8 +266,16 @@ def test(dataloader,model, model_name, save_predictions=False):
     # Save the predictions to the json format
     if save_predictions:
         list_game = getListGames(dataloader.dataset.split)
+        split = '_'.join(dataloader.dataset.split)
+        output_path = os.path.join("models", model_name, f"outputs_{split}") + os.sep
         for index in np.arange(len(list_game)):
-            predictions2json(detections_numpy[index*2], detections_numpy[(index*2)+1],"outputs/", list_game[index], model.framerate)
+            predictions2json(
+                detections_numpy[index*2],
+                detections_numpy[(index*2)+1],
+                output_path,
+                list_game[index],
+                model.framerate,
+            )
 
 
     # Compute the performances
