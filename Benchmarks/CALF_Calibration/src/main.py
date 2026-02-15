@@ -60,11 +60,18 @@ def main(args):
 
         val_metric_loader = torch.utils.data.DataLoader(dataset_Valid_metric,
             batch_size=1, shuffle=False,
-            num_workers=1, pin_memory=True)
+            # CALF_Calibration runs a CUDA ResNet inside Dataset.__getitem__ for player crops;
+            # using forked DataLoader workers with CUDA will crash ("Cannot re-initialize CUDA...").
+            num_workers=0, pin_memory=True)
 
-    test_loader = torch.utils.data.DataLoader(dataset_Test,
-        batch_size=1, shuffle=False,
-        num_workers=1, pin_memory=True)
+    test_loader = torch.utils.data.DataLoader(
+        dataset_Test,
+        batch_size=1,
+        shuffle=False,
+        # See note above: keep this on the main process when CUDA is in use.
+        num_workers=0,
+        pin_memory=True,
+    )
 
     # Training parameters
     if not args.test_only:
