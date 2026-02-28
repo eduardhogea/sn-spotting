@@ -70,7 +70,13 @@ def main(args):
                                     weight_decay=0, amsgrad=False)
 
 
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', verbose=True, patience=args.patience)
+        # Torch>=2.6 removed/changed some kwargs across variants; keep a
+        # compatibility-safe constructor for this external baseline.
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode="min",
+            patience=args.patience,
+        )
 
         # start training
         trainer(train_loader, val_loader, val_metric_loader, 
