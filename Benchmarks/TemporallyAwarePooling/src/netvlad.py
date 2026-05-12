@@ -14,6 +14,17 @@ import torch as th
 import math
 
 
+def _safe_batched_mm(lhs: th.Tensor, rhs: th.Tensor) -> th.Tensor:
+    # Torch/cuBLAS on this environment can fail on strided batched GEMM
+    # with CUBLAS_STATUS_INVALID_VALUE for valid [B, M, K] x [B, K, N] inputs.
+    # Fall back to per-sample mm on CUDA when batch>1.
+    if lhs.dim() == 3 and rhs.dim() == 3 and lhs.shape[0] == rhs.shape[0]:
+        if lhs.is_cuda and lhs.shape[0] > 1:
+            return th.stack([th.mm(lhs[i], rhs[i]) for i in range(lhs.shape[0])], dim=0)
+        return th.bmm(lhs, rhs)
+    return th.matmul(lhs, rhs)
+
+
 class NetVLAD(nn.Module):
     def __init__(self, cluster_size, feature_size, add_batch_norm=True):
         super(NetVLAD, self).__init__()
@@ -47,7 +58,7 @@ class NetVLAD(nn.Module):
         assignment = assignment.transpose(1,2)
 
         x = x.view(-1, max_sample, self.feature_size)
-        vlad = th.matmul(assignment, x)
+        vlad = _safe_batched_mm(assignment, x)
         vlad = vlad.transpose(1,2)
         vlad = vlad - a
 
@@ -96,7 +107,7 @@ class NetRVLAD(nn.Module):
         assignment = assignment.transpose(1,2)
 
         x = x.view(-1, max_sample, self.feature_size)
-        rvlad = th.matmul(assignment, x)
+        rvlad = _safe_batched_mm(assignment, x)
         rvlad = rvlad.transpose(-1,1)
 
         # vlad = vlad.transpose(1,2)
